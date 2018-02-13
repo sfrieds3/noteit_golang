@@ -6,7 +6,7 @@ CLI note taking tool, written in golang
 ## Usage
 
 ```bash
-noteit <notebook> <note title> <note>
+$ noteit <notebook> <note title> <note>
 ```
 
 Flags:
