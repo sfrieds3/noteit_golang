@@ -36,9 +36,9 @@ func deleteNote(input string) {
 }
 
 func addNote(input string) {
-	fmt.Printf("Add to note:%v\n", input)
+	fmt.Printf("Add to note: %v\n", input)
 }
 
 func newNote(input string) {
-	fmt.Printf("User would like to create a new notebook%v\n", input)
+	fmt.Printf("User would like to create a new notebook: %v\n", input)
 }
