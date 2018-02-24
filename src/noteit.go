@@ -82,8 +82,8 @@ func createNewNotebook(input string) {
 	// allow user to add README?
 }
 
-func startNoteItSession() NoteItSession {
-	p := NoteItSession
+func startNoteItSession() *NoteItSession {
+	p := new(NoteItSession)
 	if usr, err := user.Current(); err != nil {
 		p.UserDir = usr.HomeDir
 		fmt.Println("User directory: %v", p.UserDir)
