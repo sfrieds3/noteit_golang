@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"strings"
 	"time"
 )
 
@@ -54,20 +55,20 @@ type Notebook struct {
 }
 
 func main() {
-	session := startNoteItSession()
+	//session := startNoteItSession()
 	userArgs := os.Args[0:]
 	switch userArgs[1] {
 	case "n":
 		createNewNotebook(userArgs[2])
 	case "a":
-		addNote(userArgs[2])
+		addNote(userArgs[2:])
 	case "v":
 		viewNote(userArgs[2])
 	}
 }
 
-func addNote(input string) {
-	fmt.Printf("Add to note: %v\n", input)
+func addNote(input []string) {
+	fmt.Printf("Add to note: %v\n", strings.Join(input[:], " "))
 }
 
 func viewNote(input string) {
