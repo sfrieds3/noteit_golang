@@ -41,46 +41,62 @@ type NoteItSession struct {
 }
 
 type Note struct {
-	notebook     Notebook
-	noteBody     string
-	dateAdded    time.Time
-	lastModified time.Time
+	Notebook     Notebook
+	NoteBody     string
+	DateAdded    time.Time
+	LastModified time.Time
 }
 
 type Notebook struct {
-	numNotes    int
-	dateAdded   time.Time
-	lasModified time.Time
-	tags        string
+	Name     string
+	NumNotes int
+	Tags     string
 }
 
 func main() {
 	//session := startNoteItSession()
-	userArgs := os.Args[0:]
-	switch userArgs[1] {
-	case "n":
-		createNewNotebook(userArgs[2])
-	case "a":
-		addNote(userArgs[2:])
-	case "v":
-		viewNote(userArgs[2])
+	if len(os.Args) < 3 {
+		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
+	}
+	switch os.Args[1] {
+	case "-n":
+		createNewNotebook(os.Args[2])
+	case "-a":
+		addNote(os.Args[2:])
+	case "-v":
+		viewNote(os.Args[2])
+	case "-e":
+		editNote(os.Args[2])
 	}
 }
 
 func addNote(input []string) {
 	fmt.Printf("Add to note: %v\n", strings.Join(input[:], " "))
+	// open correct notebook
+	// append to correct file within notebook
 }
 
 func viewNote(input string) {
 	fmt.Printf("User would like to view all notes")
+	// print contents of note to screen
 }
 
 func createNewNotebook(input string) {
 	fmt.Printf("User would like to create a new notebook: %v\n", input)
+	notebook := new(Notebook)
+	notebook.Name = input
+	notebook.NumNotes = 0
+	// TODO: get tags from user input
+	notebook.Tags = ""
 	// create new Notebook struct
 	// prompt user for new notebook name and tags
 	// create new folder
 	// allow user to add README?
+}
+
+func editNote(input string) {
+	fmt.Printf("User would like to edit notebook: %v\n", input)
+	// open requested note in vim (or default editor)
 }
 
 func startNoteItSession() *NoteItSession {
