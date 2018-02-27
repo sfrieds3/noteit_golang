@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 	"strings"
 	"time"
 )
@@ -54,34 +54,35 @@ type Notebook struct {
 }
 
 func main() {
-	//session := startNoteItSession()
+	session := getSessionDetails()
+	fmt.Printf("This session home directory: %v\n", session.UserDir)
 	if len(os.Args) < 3 {
 		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
 	}
 	switch os.Args[1] {
 	case "-n":
-		createNewNotebook(os.Args[2])
+		session.createNewNotebook(os.Args[2])
 	case "-a":
-		addNote(os.Args[2:])
+		session.addNote(os.Args[2:])
 	case "-v":
-		viewNote(os.Args[2])
+		session.viewNote(os.Args[2])
 	case "-e":
-		editNote(os.Args[2])
+		session.editNote(os.Args[2])
 	}
 }
 
-func addNote(input []string) {
+func (s *NoteItSession) addNote(input []string) {
 	fmt.Printf("Add to note: %v\n", strings.Join(input[:], " "))
 	// open correct notebook
 	// append to correct file within notebook
 }
 
-func viewNote(input string) {
+func (s *NoteItSession) viewNote(input string) {
 	fmt.Printf("User would like to view all notes")
 	// print contents of note to screen
 }
 
-func createNewNotebook(input string) {
+func (s *NoteItSession) createNewNotebook(input string) {
 	fmt.Printf("User would like to create a new notebook: %v\n", input)
 	notebook := new(Notebook)
 	notebook.Name = input
@@ -92,20 +93,23 @@ func createNewNotebook(input string) {
 	// prompt user for new notebook name and tags
 	// create new folder
 	// allow user to add README?
+	var filename bytes.Buffer
+	filename.WriteString(s.UserDir)
+	filename.WriteString(input)
+	os.Mkdir(filename.String(), 644)
 }
 
-func editNote(input string) {
+func (s *NoteItSession) editNote(input string) {
 	fmt.Printf("User would like to edit notebook: %v\n", input)
 	// open requested note in vim (or default editor)
 }
 
-func startNoteItSession() *NoteItSession {
+func getSessionDetails() *NoteItSession {
 	p := new(NoteItSession)
-	if usr, err := user.Current(); err != nil {
-		p.UserDir = usr.HomeDir
-		fmt.Println("User directory: %v", p.UserDir)
-	} else {
-		log.Fatal(err)
-	}
+	p.UserDir = os.Getenv("HOME")
+	var buffer bytes.Buffer
+	buffer.WriteString(p.UserDir)
+	buffer.WriteString("/noteit/")
+	p.UserDir = buffer.String()
 	return p
 }
