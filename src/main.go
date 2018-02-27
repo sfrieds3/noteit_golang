@@ -14,32 +14,35 @@ import (
 - each directory can have multiple notes
 - each note and directory can have tags
 - command line args:
-	- a: add new or append to existing note
-	- n: specify notebook to use (create new notebook if necessary)
-	- v: view note
-	- va view all notes in directory
+        - a: add new or append to existing note
+        - n: specify notebook to use (create new notebook if necessary)
+        - v: view note
+        - va view all notes in directory
 - for notes:
-	- quick add, append to existing note, or add to new note
-	- for more in depth editing, can open editor of your choice
+        - quick add, append to existing note, or add to new note
+        - for more in depth editing, can open editor of your choice
 - process for adding note:
-	- noteit -a <noteName> -n <notebookName> <note>
-		- if <note> not specified, open vim or other editor
-	- default to noteName = notebookName if not specified
-	- must specify notebook to add to
-	- note name is optional
-	- default action is to append to noteName notebookName
+        - noteit -a <noteName> -n <notebookName> <note>
+                - if <note> not specified, open vim or other editor
+        - default to noteName = notebookName if not specified
+        - must specify notebook to add to
+        - note name is optional
+        - default action is to append to noteName notebookName
 */
 
+// Constants for NoteIt.
 const (
 	// Current goserver version
 	Version = "0.0.1"
 	Path    = "./" // should be able to be changed
 )
 
+// NoteItSession stores session data for NoteIt.
 type NoteItSession struct {
 	UserDir string
 }
 
+// Note struct contains details about the note to be saved.
 type Note struct {
 	Notebook     Notebook
 	NoteBody     string
@@ -47,6 +50,7 @@ type Note struct {
 	LastModified time.Time
 }
 
+// Notebook struct that contains details about notebook.
 type Notebook struct {
 	Name     string
 	NumNotes int
@@ -73,12 +77,28 @@ func main() {
 
 func (s *NoteItSession) addNote(input []string) {
 	fmt.Printf("Add to note: %v\n", strings.Join(input[:], " "))
-	// open correct notebook
+
+	// buffer to create notebook path
+	nBook := s.getNotebookPath(input[0])
+	fmt.Printf("notebook to add note to: %v\n", nBook)
 	// append to correct file within notebook
+
+	notePath := s.getNotePath(nBook, input[1])
+	fmt.Printf("note path: %v\n", notePath)
+
+	f, err := os.OpenFile(notePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	defer f.Close()
+	if err != nil {
+		log.Fatalf("Notebook %s does not exist. Please create with -n and try again.", nBook)
+	}
+
+	f.WriteString("\n")
+	//f.WriteString(strings.Split(input[2:], " "))
+	f.WriteString("This is a test")
 }
 
 func (s *NoteItSession) viewNote(input string) {
-	fmt.Printf("User would like to view all notes")
+	fmt.Printf("User would like to view note")
 	// print contents of note to screen
 }
 
@@ -87,16 +107,28 @@ func (s *NoteItSession) createNewNotebook(input string) {
 	notebook := new(Notebook)
 	notebook.Name = input
 	notebook.NumNotes = 0
+
 	// TODO: get tags from user input
 	notebook.Tags = ""
-	// create new Notebook struct
-	// prompt user for new notebook name and tags
-	// create new folder
-	// allow user to add README?
-	var filename bytes.Buffer
-	filename.WriteString(s.UserDir)
-	filename.WriteString(input)
-	os.Mkdir(filename.String(), 644)
+
+	// get filename for notebook
+	filename := s.getNotebookPath(input)
+	os.Mkdir(filename, 644)
+}
+
+func (s *NoteItSession) getNotePath(notebookPath, note string) string {
+	var noteFile bytes.Buffer
+	noteFile.WriteString(notebookPath)
+	noteFile.WriteString(note)
+	return noteFile.String()
+}
+
+func (s *NoteItSession) getNotebookPath(nBook string) string {
+	var notebookPath bytes.Buffer
+	notebookPath.WriteString(s.UserDir)
+	notebookPath.WriteString(nBook)
+	notebookPath.WriteString("/")
+	return notebookPath.String()
 }
 
 func (s *NoteItSession) editNote(input string) {
