@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -58,32 +58,42 @@ type Notebook struct {
 }
 
 func main() {
+	var createNotebook = flag.String("n", "", "flag to specify creation of new notebook")
+	var addNote = flag.String("a", "", "flag to add new note")
+	var editNote = flag.String("e", "", "flag to edit note by opening note in default editor")
+	//var note = flag.String("n", "", "contents of note")
+
+	flag.Parse()
+
+	fmt.Printf("FLAGS: createNotebook: %v, addNote: %v, editNote: %v\n", *createNotebook, *addNote, *editNote)
+
 	session := getSessionDetails()
 	fmt.Printf("This session home directory: %v\n", session.UserDir)
 	if len(os.Args) < 3 {
 		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
 	}
-	switch os.Args[1] {
-	case "-n":
-		session.createNewNotebook(os.Args[2])
-	case "-a":
-		session.addNote(os.Args[2:])
-	case "-v":
-		session.viewNote(os.Args[2])
-	case "-e":
-		session.editNote(os.Args[2])
+	if *createNotebook != "" {
+		session.createNewNotebook(*createNotebook)
+	}
+
+	if *addNote != "" {
+		session.addNote(*addNote)
+	}
+
+	if *editNote != "" {
+		session.editNote(*editNote)
 	}
 }
 
-func (s *NoteItSession) addNote(input []string) {
-	fmt.Printf("Add to note: %v\n", strings.Join(input[:], " "))
+func (s *NoteItSession) addNote(input string) {
+	fmt.Printf("Add to note: %v\n", input)
 
 	// buffer to create notebook path
-	nBook := s.getNotebookPath(input[0])
+	nBook := s.getNotebookPath(input)
 	fmt.Printf("notebook to add note to: %v\n", nBook)
 	// append to correct file within notebook
 
-	notePath := s.getNotePath(nBook, input[1])
+	notePath := s.getNotePath(nBook, input)
 	fmt.Printf("note path: %v\n", notePath)
 
 	// TODO: fix permissions
