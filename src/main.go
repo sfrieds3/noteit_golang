@@ -97,7 +97,7 @@ func (s *NoteItSession) addNote(input string) {
 	fmt.Printf("note path: %v\n", notePath)
 
 	// TODO: fix permissions
-	f, err := os.OpenFile(notePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 755)
+	f, err := os.OpenFile(notePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	defer f.Close()
 	if err != nil {
 		log.Fatalf("Notebook %s does not exist. Please create with -n and try again.", nBook)
@@ -125,7 +125,7 @@ func (s *NoteItSession) createNewNotebook(input string) {
 	// get filename for notebook
 	filename := s.getNotebookPath(input)
 	// TODO: fix permissions
-	os.Mkdir(filename, 755)
+	os.Mkdir(filename, 0644)
 }
 
 func (s *NoteItSession) getNotePath(notebookPath, note string) string {
