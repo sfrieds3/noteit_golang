@@ -76,7 +76,7 @@ func main() {
 	}
 	if *useNotebook != "" {
 		session.setNotebookPath(*useNotebook)
-		session.getNotebook()
+		session.getNotebook(*useNotebook)
 	}
 
 	if *addNote != "" {
@@ -92,14 +92,14 @@ func main() {
 func (s *NoteItSession) setNotebookPath(n string) {
 	notebookPath := new(strings.Builder)
 	if _, err := notebookPath.WriteString(s.UserDir); err != nil {
-		log.Fatalf("Error writing directory name, %s\n", s.UserDir)
+		log.Fatalf("error writing directory name, %s\n", s.UserDir)
 	}
 	if _, err := notebookPath.WriteString(n); err != nil {
-		log.Fatalf("Error writing directory name, %s\n", n)
+		log.Fatalf("error writing directory name, %s\n", n)
 	}
 
 	if _, err := notebookPath.WriteString(".md"); err != nil {
-		log.Fatalf("Error writing directory name, %s\n", n)
+		log.Fatalf("error writing directory name, %s\n", n)
 	}
 
 	s.NotebookPath = notebookPath.String()
@@ -107,18 +107,35 @@ func (s *NoteItSession) setNotebookPath(n string) {
 
 // getNotebook ensures the notebook (i.e. folder) is available
 // and will create new folder if folder has not been created yet
-func (s *NoteItSession) getNotebook() {
+func (s *NoteItSession) getNotebook(n string) {
 	fmt.Printf("notebook path: %s\n", s.NotebookPath)
 
-	// TODO: make notebook .md file
 	_, err := os.Stat(s.NotebookPath)
 
 	if os.IsNotExist(err) {
+		fmt.Printf("Need to create directory")
 		// create directory
-		if _, err := os.Create(s.NotebookPath); err != nil {
+		f, err := os.Create(s.NotebookPath)
+		if err != nil {
 			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
 		}
-		// TODO: insert heading for file
+
+		defer f.Close()
+
+		_, err = f.WriteString("# ")
+		if err != nil {
+			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
+		}
+
+		_, err = f.WriteString(n)
+		if err != nil {
+			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
+		}
+
+		_, err = f.WriteString("\n\n")
+		if err != nil {
+			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
+		}
 	}
 }
 
@@ -135,7 +152,7 @@ func (s *NoteItSession) addNote(n string) {
 		// append to notebook
 		fmt.Printf("No notebook specified, will add to default notebook")
 		s.NotebookPath = "default"
-		s.getNotebook()
+		s.getNotebook(n)
 	}
 
 	fmt.Printf("Will write to notebook path: %v\n", s.NotebookPath)
@@ -143,21 +160,20 @@ func (s *NoteItSession) addNote(n string) {
 	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	defer f.Close()
 
-	i, err := f.WriteString("\n")
+	_, err = f.WriteString("- ")
+	if err != nil {
+		log.Fatalf("error writing to file: %v. Error: %v\n", s.NotebookPath, err)
+	}
+
+	_, err = f.WriteString(n)
+	if err != nil {
+		log.Fatalf("error writing to file: %v. Error: %v\n", s.NotebookPath, err)
+	}
+
+	_, err = f.WriteString("\n")
 	if err != nil {
 		log.Fatalf("error writing new line file: %v. Error: %v\n", s.NotebookPath, err)
 	}
-
-	i, err = f.WriteString("- ")
-	if err != nil {
-		log.Fatalf("error writing to file: %v. Wrote %d bytes. Error: %v\n", s.NotebookPath, i, err)
-	}
-
-	i, err = f.WriteString(n)
-	if err != nil {
-		log.Fatalf("error writing to file: %v. Wrote %d bytes. Error: %v\n", s.NotebookPath, i, err)
-	}
-	fmt.Printf("%d bytes written: %s\n", i, n)
 }
 
 // editNote opens specified note in vim
