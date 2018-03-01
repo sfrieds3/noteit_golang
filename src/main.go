@@ -106,6 +106,7 @@ func (s *NoteItSession) setNotebookPath(n string) {
 func (s *NoteItSession) findNotebook() {
 	fmt.Printf("notebook path: %s\n", s.NotebookPath)
 
+	// TODO: make notebook .md file
 	_, err := os.Stat(s.NotebookPath)
 
 	if os.IsNotExist(err) {
@@ -113,6 +114,7 @@ func (s *NoteItSession) findNotebook() {
 		if _, err := os.Create(s.NotebookPath); err != nil {
 			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
 		}
+		// TODO: insert heading for file
 	}
 }
 
@@ -136,11 +138,22 @@ func (s *NoteItSession) addNote(n string) {
 
 	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	defer f.Close()
-	i, err := f.WriteString("test")
+
+	i, err := f.WriteString("\n")
+	if err != nil {
+		log.Fatalf("error writing new line file: %v. Error: %v\n", s.NotebookPath, err)
+	}
+
+	i, err = f.WriteString("- ")
 	if err != nil {
 		log.Fatalf("error writing to file: %v. Wrote %d bytes. Error: %v\n", s.NotebookPath, i, err)
 	}
-	fmt.Printf("%d bytes written: %s\n", i, "test")
+
+	i, err = f.WriteString(n)
+	if err != nil {
+		log.Fatalf("error writing to file: %v. Wrote %d bytes. Error: %v\n", s.NotebookPath, i, err)
+	}
+	fmt.Printf("%d bytes written: %s\n", i, n)
 }
 
 // editNote opens specified note in vim
