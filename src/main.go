@@ -134,13 +134,13 @@ func (s *NoteItSession) addNote(n string) {
 
 	fmt.Printf("Will write to notebook path: %v\n", s.NotebookPath)
 
-	f, err := os.Open(s.NotebookPath)
-	b := make([]byte, 5)
-	i, err := f.Read(b)
+	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	defer f.Close()
+	i, err := f.WriteString("test")
 	if err != nil {
-		log.Fatalf("error reading file: %v\n", s.NotebookPath)
+		log.Fatalf("error writing to file: %v. Wrote %d bytes. Error: %v\n", s.NotebookPath, i, err)
 	}
-	fmt.Printf("%d bytes read: %s\n", i, string(b))
+	fmt.Printf("%d bytes written: %s\n", i, "test")
 }
 
 // editNote opens specified note in vim
