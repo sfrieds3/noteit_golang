@@ -76,7 +76,7 @@ func main() {
 	}
 	if *useNotebook != "" {
 		session.setNotebookPath(*useNotebook)
-		session.findNotebook()
+		session.getNotebook()
 	}
 
 	if *addNote != "" {
@@ -98,12 +98,16 @@ func (s *NoteItSession) setNotebookPath(n string) {
 		log.Fatalf("Error writing directory name, %s\n", n)
 	}
 
+	if _, err := notebookPath.WriteString(".md"); err != nil {
+		log.Fatalf("Error writing directory name, %s\n", n)
+	}
+
 	s.NotebookPath = notebookPath.String()
 }
 
-// findNotebook ensures the notebook (i.e. folder) is available
+// getNotebook ensures the notebook (i.e. folder) is available
 // and will create new folder if folder has not been created yet
-func (s *NoteItSession) findNotebook() {
+func (s *NoteItSession) getNotebook() {
 	fmt.Printf("notebook path: %s\n", s.NotebookPath)
 
 	// TODO: make notebook .md file
@@ -131,7 +135,7 @@ func (s *NoteItSession) addNote(n string) {
 		// append to notebook
 		fmt.Printf("No notebook specified, will add to default notebook")
 		s.NotebookPath = "default"
-		s.findNotebook()
+		s.getNotebook()
 	}
 
 	fmt.Printf("Will write to notebook path: %v\n", s.NotebookPath)
