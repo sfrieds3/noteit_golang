@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -39,7 +40,8 @@ const (
 
 // NoteItSession stores session data for NoteIt.
 type NoteItSession struct {
-	UserDir string
+	UserDir      string
+	NotebookPath string
 }
 
 // Note struct contains details about the note to be saved.
@@ -58,22 +60,23 @@ type Notebook struct {
 }
 
 func main() {
-	var createNotebook = flag.String("n", "", "flag to specify creation of new notebook")
+	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
 	var addNote = flag.String("a", "", "flag to add new note")
 	var editNote = flag.String("e", "", "flag to edit note by opening note in default editor")
 	//var note = flag.String("n", "", "contents of note")
 
 	flag.Parse()
 
-	fmt.Printf("FLAGS: createNotebook: %v, addNote: %v, editNote: %v\n", *createNotebook, *addNote, *editNote)
+	fmt.Printf("FLAGS: createNotebook: %v, addNote: %v, editNote: %v\n", *useNotebook, *addNote, *editNote)
 
 	session := getSessionDetails()
 	fmt.Printf("This session home directory: %v\n", session.UserDir)
 	if len(os.Args) < 3 {
 		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
 	}
-	if *createNotebook != "" {
-		session.createNewNotebook(*createNotebook)
+	if *useNotebook != "" {
+		session.setNotebookPath(*useNotebook)
+		session.findNotebook()
 	}
 
 	if *addNote != "" {
@@ -85,67 +88,64 @@ func main() {
 	}
 }
 
-func (s *NoteItSession) addNote(input string) {
-	fmt.Printf("Add to note: %v\n", input)
-
-	// buffer to create notebook path
-	nBook := s.getNotebookPath(input)
-	fmt.Printf("notebook to add note to: %v\n", nBook)
-	// append to correct file within notebook
-
-	notePath := s.getNotePath(nBook, input)
-	fmt.Printf("note path: %v\n", notePath)
-
-	// TODO: fix permissions
-	f, err := os.OpenFile(notePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	defer f.Close()
-	if err != nil {
-		log.Fatalf("Notebook %s does not exist. Please create with -n and try again.", nBook)
+// setNotebookPath sets path of notebook in NoteItSession struct
+func (s *NoteItSession) setNotebookPath(n string) {
+	notebookPath := new(strings.Builder)
+	if _, err := notebookPath.WriteString(s.UserDir); err != nil {
+		log.Fatalf("Error writing directory name, %s\n", s.UserDir)
+	}
+	if _, err := notebookPath.WriteString(n); err != nil {
+		log.Fatalf("Error writing directory name, %s\n", n)
 	}
 
-	f.WriteString("\n")
-	//f.WriteString(strings.Split(input[2:], " "))
-	f.WriteString("This is a test")
+	s.NotebookPath = notebookPath.String()
 }
 
-func (s *NoteItSession) viewNote(input string) {
-	fmt.Printf("User would like to view note")
-	// print contents of note to screen
+// findNotebook ensures the notebook (i.e. folder) is available
+// and will create new folder if folder has not been created yet
+func (s *NoteItSession) findNotebook() {
+	fmt.Printf("notebook path: %s\n", s.NotebookPath)
+
+	_, err := os.Stat(s.NotebookPath)
+
+	if os.IsNotExist(err) {
+		// create directory
+		if _, err := os.Create(s.NotebookPath); err != nil {
+			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
+		}
+	}
 }
 
-func (s *NoteItSession) createNewNotebook(input string) {
-	fmt.Printf("User would like to create a new notebook: %v\n", input)
-	notebook := new(Notebook)
-	notebook.Name = input
-	notebook.NumNotes = 0
+// addNote adds a note to the selected notebook
+func (s *NoteItSession) addNote(n string) {
+	// appned to s.NotebookPath
+	// if NotebookPath == nil
+	// add to defualt notebook path
 
-	// TODO: get tags from user input
-	notebook.Tags = ""
+	fmt.Printf("String to add: %v\n", n)
+	fmt.Printf("notebookPath: %v\n", s.NotebookPath)
 
-	// get filename for notebook
-	filename := s.getNotebookPath(input)
-	// TODO: fix permissions
-	os.Mkdir(filename, 0644)
+	if s.NotebookPath == "" {
+		// append to notebook
+		fmt.Printf("No notebook specified, will add to default notebook")
+		s.NotebookPath = "default"
+		s.findNotebook()
+	}
+
+	fmt.Printf("Will write to notebook path: %v\n", s.NotebookPath)
+
+	f, err := os.Open(s.NotebookPath)
+	b := make([]byte, 5)
+	i, err := f.Read(b)
+	if err != nil {
+		log.Fatalf("error reading file: %v\n", s.NotebookPath)
+	}
+	fmt.Printf("%d bytes read: %s\n", i, string(b))
 }
 
-func (s *NoteItSession) getNotePath(notebookPath, note string) string {
-	var noteFile bytes.Buffer
-	noteFile.WriteString(notebookPath)
-	noteFile.WriteString(note)
-	return noteFile.String()
-}
-
-func (s *NoteItSession) getNotebookPath(nBook string) string {
-	var notebookPath bytes.Buffer
-	notebookPath.WriteString(s.UserDir)
-	notebookPath.WriteString(nBook)
-	notebookPath.WriteString("/")
-	return notebookPath.String()
-}
-
-func (s *NoteItSession) editNote(input string) {
-	fmt.Printf("User would like to edit notebook: %v\n", input)
-	// open requested note in vim (or default editor)
+// editNote opens specified note in vim
+func (s *NoteItSession) editNote(n string) {
+	//
 }
 
 func getSessionDetails() *NoteItSession {
