@@ -63,15 +63,16 @@ func main() {
 	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
 	var addNote = flag.String("a", "", "quick add using command line arg")
 	var editNote = flag.String("e", "", "open note in default editor")
-	//var note = flag.String("n", "", "print contents of note")
 
 	flag.Parse()
 
 	session := getSessionDetails()
 
 	if len(os.Args) < 3 {
-		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
+		flag.Usage()
+		log.Fatalf("USAGE: noteit -<n/a/e> <details>")
 	}
+
 	if *useNotebook != "" {
 		session.setNotebookPath(*useNotebook)
 		session.getNotebook(*useNotebook)
@@ -89,9 +90,11 @@ func main() {
 // setNotebookPath sets path of notebook in NoteItSession struct
 func (s *NoteItSession) setNotebookPath(n string) {
 	notebookPath := new(strings.Builder)
+
 	if _, err := notebookPath.WriteString(s.UserDir); err != nil {
 		log.Fatalf("error writing directory name, %s\n", s.UserDir)
 	}
+
 	if _, err := notebookPath.WriteString(n); err != nil {
 		log.Fatalf("error writing directory name, %s\n", n)
 	}
@@ -112,11 +115,10 @@ func (s *NoteItSession) getNotebook(n string) {
 	if os.IsNotExist(err) {
 		// create directory
 		f, err := os.Create(s.NotebookPath)
+		defer f.Close()
 		if err != nil {
 			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
 		}
-
-		defer f.Close()
 
 		_, err = f.WriteString("# ")
 		if err != nil {
@@ -145,7 +147,7 @@ func (s *NoteItSession) addNote(n string) {
 		// append to notebook
 		fmt.Printf("No notebook specified, will add to default notebook\n")
 		s.setNotebookPath("default")
-		s.getNotebook(n)
+		s.getNotebook("default")
 	}
 
 	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
