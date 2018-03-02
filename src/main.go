@@ -143,8 +143,8 @@ func (s *NoteItSession) addNote(n string) {
 
 	if s.NotebookPath == "" {
 		// append to notebook
-		fmt.Printf("No notebook specified, will add to default notebook")
-		s.NotebookPath = "/usr/home/noteit/default"
+		fmt.Printf("No notebook specified, will add to default notebook\n")
+		s.setNotebookPath("default")
 		s.getNotebook(n)
 	}
 
