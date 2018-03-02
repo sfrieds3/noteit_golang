@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 )
@@ -175,6 +176,19 @@ func (s *NoteItSession) addNote(n string) {
 // editNote opens specified note in vim
 func (s *NoteItSession) editNote(n string) {
 	// open notebook in vim to allow user to edit
+	s.setNotebookPath(n)
+
+	cmd := exec.Command("nvim", s.NotebookPath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Error running cmd: %v\n", cmd.Args[:])
+	}
+
+	//fmt.Printf("cmd: %v\n", cmd)
+
+	//fmt.Printf("User would like to view notebook: %v\n", s.NotebookPath)
 }
 func getSessionDetails() *NoteItSession {
 	p := new(NoteItSession)
