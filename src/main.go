@@ -41,8 +41,11 @@ const (
 
 // NoteItSession stores session data for NoteIt.
 type NoteItSession struct {
-	UserDir      string
-	NotebookPath string
+	// TODO: make this read JSON
+	UserDir         string
+	NotebookPath    string
+	DefaultNotebook string
+	DefaultEditor   string
 }
 
 // Note struct contains details about the note to be saved.
@@ -187,6 +190,7 @@ func (s *NoteItSession) editNote(n string) {
 }
 
 func getSessionDetails() *NoteItSession {
+	// TODO: make this read json file
 	p := new(NoteItSession)
 	p.UserDir = os.Getenv("HOME")
 	var buffer bytes.Buffer
