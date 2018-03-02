@@ -61,9 +61,9 @@ type Notebook struct {
 
 func main() {
 	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
-	var addNote = flag.String("a", "", "flag to add new note")
-	var editNote = flag.String("e", "", "flag to edit note by opening note in default editor")
-	//var note = flag.String("n", "", "contents of note")
+	var addNote = flag.String("a", "", "quick add using command line arg")
+	var editNote = flag.String("e", "", "open note in default editor")
+	//var note = flag.String("n", "", "print contents of note")
 
 	flag.Parse()
 
@@ -178,7 +178,7 @@ func (s *NoteItSession) addNote(n string) {
 
 // editNote opens specified note in vim
 func (s *NoteItSession) editNote(n string) {
-	//
+	// open notebook in vim to allow user to edit
 }
 
 func getSessionDetails() *NoteItSession {
