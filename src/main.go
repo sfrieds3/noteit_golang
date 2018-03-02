@@ -176,7 +176,6 @@ func (s *NoteItSession) addNote(n string) {
 func (s *NoteItSession) editNote(n string) {
 	// open notebook in vim to allow user to edit
 }
-
 func getSessionDetails() *NoteItSession {
 	p := new(NoteItSession)
 	p.UserDir = os.Getenv("HOME")
