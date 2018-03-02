@@ -67,10 +67,8 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Printf("FLAGS: createNotebook: %v, addNote: %v, editNote: %v\n", *useNotebook, *addNote, *editNote)
-
 	session := getSessionDetails()
-	fmt.Printf("This session home directory: %v\n", session.UserDir)
+
 	if len(os.Args) < 3 {
 		log.Fatalf("USAGE: noteit -<n/a/v> <details>")
 	}
@@ -108,12 +106,10 @@ func (s *NoteItSession) setNotebookPath(n string) {
 // getNotebook ensures the notebook (i.e. folder) is available
 // and will create new folder if folder has not been created yet
 func (s *NoteItSession) getNotebook(n string) {
-	fmt.Printf("notebook path: %s\n", s.NotebookPath)
 
 	_, err := os.Stat(s.NotebookPath)
 
 	if os.IsNotExist(err) {
-		fmt.Printf("Need to create directory")
 		// create directory
 		f, err := os.Create(s.NotebookPath)
 		if err != nil {
@@ -145,17 +141,12 @@ func (s *NoteItSession) addNote(n string) {
 	// if NotebookPath == nil
 	// add to defualt notebook path
 
-	fmt.Printf("String to add: %v\n", n)
-	fmt.Printf("notebookPath: %v\n", s.NotebookPath)
-
 	if s.NotebookPath == "" {
 		// append to notebook
 		fmt.Printf("No notebook specified, will add to default notebook")
-		s.NotebookPath = "default"
+		s.NotebookPath = "/usr/home/noteit/default"
 		s.getNotebook(n)
 	}
-
-	fmt.Printf("Will write to notebook path: %v\n", s.NotebookPath)
 
 	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	defer f.Close()
@@ -174,6 +165,9 @@ func (s *NoteItSession) addNote(n string) {
 	if err != nil {
 		log.Fatalf("error writing new line file: %v. Error: %v\n", s.NotebookPath, err)
 	}
+
+	// alert user note has been updated
+	fmt.Printf("%v note updated!\n", s.NotebookPath)
 }
 
 // editNote opens specified note in vim
