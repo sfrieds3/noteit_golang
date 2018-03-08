@@ -41,7 +41,7 @@ const (
 
 // NoteItSession stores session data for NoteIt.
 type NoteItSession struct {
-	// TODO: make this read JSON
+	// TODO: this should be pulled from JSON
 	UserDir         string
 	NotebookPath    string
 	DefaultNotebook string
