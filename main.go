@@ -33,8 +33,8 @@ import (
 */
 
 // Constants for NoteIt.
+// Constants include: current version of noteit
 const (
-	// Current goserver version
 	Version = "0.0.1"
 	Path    = "./" // should be able to be changed
 )
@@ -117,7 +117,6 @@ func (s *NoteItSession) getNotebook(n string) {
 	_, err := os.Stat(s.NotebookPath)
 
 	if os.IsNotExist(err) {
-		// create directory
 		f, err := os.Create(s.NotebookPath)
 		defer f.Close()
 		if err != nil {
@@ -143,12 +142,7 @@ func (s *NoteItSession) getNotebook(n string) {
 
 // addNote adds a note to the selected notebook
 func (s *NoteItSession) addNote(n string) {
-	// appned to s.NotebookPath
-	// if NotebookPath == nil
-	// add to defualt notebook path
-
 	if s.NotebookPath == "" {
-		// append to notebook
 		fmt.Printf("No notebook specified, will add to default notebook\n")
 		s.setNotebookPath("default")
 		s.getNotebook("default")
@@ -172,7 +166,6 @@ func (s *NoteItSession) addNote(n string) {
 		log.Fatalf("error writing new line file: %v. Error: %v\n", s.NotebookPath, err)
 	}
 
-	// alert user note has been updated
 	fmt.Printf("%v note updated!\n", s.NotebookPath)
 }
 
