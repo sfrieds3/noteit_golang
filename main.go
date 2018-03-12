@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 /*
@@ -46,21 +45,6 @@ type NoteItSession struct {
 	NotebookPath    string
 	DefaultNotebook string
 	DefaultEditor   string
-}
-
-// Note struct contains details about the note to be saved.
-type Note struct {
-	Notebook     Notebook
-	NoteBody     string
-	DateAdded    time.Time
-	LastModified time.Time
-}
-
-// Notebook struct that contains details about notebook.
-type Notebook struct {
-	Name     string
-	NumNotes int
-	Tags     string
 }
 
 func main() {
@@ -182,6 +166,9 @@ func (s *NoteItSession) editNote(n string) {
 	}
 }
 
+// getSessionDetails sets up the current NoteItSession.
+// This holds details such as user's $HOME, and default note.
+// These can be overridden by the noteit.json file.
 func getSessionDetails() *NoteItSession {
 	// TODO: make this read json file
 	p := new(NoteItSession)
