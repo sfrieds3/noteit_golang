@@ -33,7 +33,7 @@ func main() {
 	// TODO: implement the below
 	//var viewNote = flag.String("v", "", "view specified note")
 	//var viewAll = flag.String("va", "", "view all notes in directory")
-	//var viewDirectories = flag.String("vd", "", "view all directory names")
+	//var viewNotebooks = flag.String("vn", "", "view all notebook names")
 
 	flag.Parse()
 

@@ -6,8 +6,14 @@ CLI note taking tool, written in golang
 ## Usage
 
 ```bash
-$ noteit <notebook> <note title> <note>
+$ noteit -a <noteName> -n <notebookName> <note> # add note
+$ noteit -e <noteName> # edit note - will open in default editor
+$ noteit -n <notebookName> # create new notebook
+$ noteit -v <noteName> # view note
+$ noteit -va <notebookName> # view all notes in notebook
+$ noteit -vn # view all notebooks
 ```
+
 
 ## Overview
 
