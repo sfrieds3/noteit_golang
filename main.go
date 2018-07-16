@@ -32,7 +32,7 @@ func main() {
 	var editNote = flag.String("e", "", "open note in default editor")
 	// TODO: implement the below
 	//var viewNote = flag.String("v", "", "view specified note")
-	//var viewAll = flag.String("va", "", "view all notes in directory")
+	//var viewAll = flag.String("va", "", "view all notes in notebook")
 	//var viewNotebooks = flag.String("vn", "", "view all notebook names")
 
 	flag.Parse()

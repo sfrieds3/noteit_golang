@@ -1,5 +1,7 @@
 # noteit
-CLI note taking tool, written in golang
+noteit is a CLI note taking tool, written in golang. Notes are filed in
+notebooks, which are organized as directories under the noteit directory
+(default is ~/noteit/). Usage examples are below:
 
 ---
 
