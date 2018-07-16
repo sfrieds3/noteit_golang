@@ -10,31 +10,10 @@ import (
 	"strings"
 )
 
-/*
-- notes separated into directories
-- each directory can have multiple notes
-- each note and directory can have tags
-- command line args:
-        - a: add new or append to existing note
-        - n: specify notebook to use (create new notebook if necessary)
-        - v: view note
-        - va view all notes in directory
-- for notes:
-        - quick add, append to existing note, or add to new note
-        - for more in depth editing, can open editor of your choice
-- process for adding note:
-        - noteit -a <noteName> -n <notebookName> <note>
-                - if <note> not specified, open vim or other editor
-        - default to noteName = notebookName if not specified
-        - must specify notebook to add to
-        - note name is optional
-        - default action is to append to noteName notebookName
-*/
-
 // Constants for NoteIt.
 // Constants include: current version of noteit
 const (
-	Version = "0.0.1"
+	Version = "0.0.2"
 	Path    = "./" // should be able to be changed
 )
 
@@ -51,12 +30,16 @@ func main() {
 	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
 	var addNote = flag.String("a", "", "quick add using command line arg")
 	var editNote = flag.String("e", "", "open note in default editor")
+	// TODO: implement the below
+	//var viewNote = flag.String("v", "", "view specified note")
+	//var viewAll = flag.String("va", "", "view all notes in directory")
+	//var viewDirectories = flag.String("vd", "", "view all directory names")
 
 	flag.Parse()
 
 	session := getSessionDetails()
 
-	if len(os.Args) < 3 {
+	if len(os.Args) < 3 && len(os.Args) > 1 {
 		flag.Usage()
 		log.Fatalf("USAGE: noteit -<n/a/e> <details>")
 	}
