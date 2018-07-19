@@ -30,9 +30,7 @@ func main() {
 	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
 	var addNote = flag.String("a", "", "quick add using command line arg")
 	var editNote = flag.String("e", "", "open note in default editor")
-	// TODO: implement the below
 	//var viewNote = flag.String("v", "", "view specified note")
-	//var viewAll = flag.String("va", "", "view all notes in notebook")
 	//var viewNotebooks = flag.String("vn", "", "view all notebook names")
 
 	flag.Parse()
@@ -147,6 +145,10 @@ func (s *NoteItSession) editNote(n string) {
 	if err := cmd.Run(); err != nil {
 		log.Fatalf("Error running cmd: %v\n", cmd.Args[:])
 	}
+}
+
+func (s *NoteItSession) printNote(n string) {
+	// show all notes in notebook n
 }
 
 // getSessionDetails sets up the current NoteItSession.

@@ -10,10 +10,10 @@ notebooks, which are organized as directories under the noteit directory
 ```bash
 $ noteit -a <noteName> -n <notebookName> <note> # add note
 $ noteit -e <noteName> # edit note - will open in default editor
-$ noteit -n <notebookName> # create new notebook
-$ noteit -v <noteName> # view note
-$ noteit -va <notebookName> # view all notes in notebook
-$ noteit -vn # view all notebooks
+$ noteit -n <notebookName> # check if notebook exists, create if not
+$ noteit -v <noteName> -n <notebookName> # view note in notebook n
+$ noteit -va <notebookName> # view all note names in notebook
+$ noteit -vn # view all notebook names
 ```
 
 
