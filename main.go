@@ -27,11 +27,10 @@ type NoteItSession struct {
 }
 
 func main() {
-	var useNotebook = flag.String("n", "", "flag to specify creation of new notebook")
-	var addNote = flag.String("a", "", "quick add using command line arg")
-	var editNote = flag.String("e", "", "open note in default editor")
-	//var viewNote = flag.String("v", "", "view specified note")
-	//var viewNotebooks = flag.String("vn", "", "view all notebook names")
+	var useNote = flag.String("n", "", "specify notebook")
+	var addNote = flag.String("a", "", "add note or append if note does not exist")
+	var editNote = flag.String("e", "", "edit note in default editor")
+	var viewNote = flag.String("v", "", "view note with specified name")
 
 	flag.Parse()
 
@@ -42,9 +41,13 @@ func main() {
 		log.Fatalf("USAGE: noteit -<n/a/e> <details>")
 	}
 
-	if *useNotebook != "" {
-		session.setNotebookPath(*useNotebook)
-		session.getNotebook(*useNotebook)
+	if *viewNote != "" && *useNote != "" {
+		session.printNote(*viewNote, *useNote)
+	}
+
+	if *useNote != "" {
+		session.setNotebookPath(*useNote)
+		session.getNotebook(*useNote)
 	}
 
 	if *addNote != "" {
@@ -88,6 +91,7 @@ func (s *NoteItSession) getNotebook(n string) {
 			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
 		}
 
+		// set up first note
 		_, err = f.WriteString("# ")
 		if err != nil {
 			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
@@ -147,7 +151,7 @@ func (s *NoteItSession) editNote(n string) {
 	}
 }
 
-func (s *NoteItSession) printNote(n string) {
+func (s *NoteItSession) printNote(n string, nb string) {
 	// show all notes in notebook n
 }
 
