@@ -27,8 +27,8 @@ type NoteItSession struct {
 }
 
 func main() {
-	var useNote = flag.String("n", "", "specify notebook")
-	var addNote = flag.String("a", "", "add note or append if note does not exist")
+	var notebookName = flag.String("n", "", "specify notebook")
+	var useNote = flag.String("a", "", "add note or append if note does not exist")
 	var editNote = flag.String("e", "", "edit note in default editor")
 	var viewNote = flag.String("v", "", "view note with specified name")
 
@@ -36,25 +36,19 @@ func main() {
 
 	session := getSessionDetails()
 
-	if len(os.Args) < 3 && len(os.Args) > 1 {
-		flag.Usage()
-		log.Fatalf("USAGE: noteit -<n/a/e> <details>")
-	}
+	//if len(os.Args) < 3 && len(os.Args) > 1 {
+	//flag.Usage()
+	//log.Fatalf("USAGE: noteit -<n/a/e> <details>")
+	//}
 
-	if *viewNote != "" && *useNote != "" {
-		session.printNote(*viewNote, *useNote)
-	}
-
-	if *useNote != "" {
-		session.setNotebookPath(*useNote)
-		session.getNotebook(*useNote)
-	}
-
-	if *addNote != "" {
-		session.addNote(*addNote)
-	}
-
-	if *editNote != "" {
+	if *viewNote != "" && *notebookName != "" {
+		session.printNote(*viewNote, *notebookName)
+	} else if *notebookName != "" {
+		session.setNotebookPath(*notebookName)
+		session.getNotebook(*notebookName)
+	} else if *useNote != "" {
+		session.addNote(*useNote)
+	} else if *editNote != "" {
 		session.editNote(*editNote)
 	}
 }
