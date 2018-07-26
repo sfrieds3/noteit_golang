@@ -23,7 +23,6 @@ $ noteit -a <noteName> -n <notebookName> <note> # append to note in specified no
 $ noteit -e <noteName> # edit note in default notebook - will open in default editor
 $ noteit -n <notebookName> # check if notebook exists, create if not
 $ noteit -v <noteName> -n <notebookName> # view note in notebook
-$ noteit -va # view all note names
 ```
 
 
