@@ -7,13 +7,23 @@ notebooks, which are organized as directories under the noteit directory
 
 ## Usage
 
+file system:
+
+        noteit
+        /     \
+       /       \
+      /         \
+  notebook1   notebook2
+  /     \        /   \
+ /       \      /     \
+ note1  note2  note3  note4
+
 ```bash
-$ noteit -a <noteName> -n <notebookName> <note> # add note
-$ noteit -e <noteName> # edit note - will open in default editor
+$ noteit -a <noteName> -n <notebookName> <note> # append to note in specified notebook
+$ noteit -e <noteName> # edit note in default notebook - will open in default editor
 $ noteit -n <notebookName> # check if notebook exists, create if not
-$ noteit -v <noteName> -n <notebookName> # view note in notebook n
-$ noteit -va <notebookName> # view all note names in notebook
-$ noteit -vn # view all notebook names
+$ noteit -v <noteName> -n <notebookName> # view note in notebook
+$ noteit -va # view all note names
 ```
 
 
