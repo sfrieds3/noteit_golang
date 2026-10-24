@@ -1,164 +1,148 @@
+// Command noteit is a small CLI for taking notes in markdown notebooks.
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-// Constants for NoteIt.
-// Constants include: current version of noteit
-const (
-	Version = "0.0.2"
-	Path    = "./" // should be able to be changed
-)
+const version = "0.1.0"
 
-// NoteItSession stores session data for NoteIt.
-type NoteItSession struct {
-	// TODO: this should be pulled from JSON
-	UserDir         string
-	NotebookPath    string
-	DefaultNotebook string
-	DefaultEditor   string
-}
+const usage = `usage: noteit <command> [arguments]
+
+commands:
+  add [-n notebook] <note...>   append a note to a notebook
+  edit [notebook]               open a notebook in your editor
+  view [notebook]               print a notebook
+  list                          list all notebooks
+  version                       print the version
+
+The default notebook is used when no notebook is given.
+`
 
 func main() {
-	var notebookName = flag.String("n", "", "specify notebook")
-	var useNote = flag.String("a", "", "add note or append if note does not exist")
-	var editNote = flag.String("e", "", "edit note in default editor")
-	var viewNote = flag.String("v", "", "view note with specified name")
-
-	flag.Parse()
-
-	session := getSessionDetails()
-
-	//if len(os.Args) < 3 && len(os.Args) > 1 {
-	//flag.Usage()
-	//log.Fatalf("USAGE: noteit -<n/a/e> <details>")
-	//}
-
-	if *viewNote != "" && *notebookName != "" {
-		session.printNote(*viewNote, *notebookName)
-	} else if *notebookName != "" {
-		session.setNotebookPath(*notebookName)
-		session.getNotebook(*notebookName)
-	} else if *useNote != "" {
-		session.addNote(*useNote)
-	} else if *editNote != "" {
-		session.editNote(*editNote)
+	if err := run(os.Args[1:], os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "noteit: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-// setNotebookPath sets path of notebook in NoteItSession struct
-func (s *NoteItSession) setNotebookPath(n string) {
-	notebookPath := new(strings.Builder)
-
-	if _, err := notebookPath.WriteString(s.UserDir); err != nil {
-		log.Fatalf("error writing directory name, %s\n", s.UserDir)
+func run(args []string, stdout io.Writer) error {
+	if len(args) == 0 {
+		fmt.Fprint(stdout, usage)
+		return nil
 	}
 
-	if _, err := notebookPath.WriteString(n); err != nil {
-		log.Fatalf("error writing directory name, %s\n", n)
+	cmd, args := args[0], args[1:]
+	switch cmd {
+	case "help", "-h", "--help":
+		fmt.Fprint(stdout, usage)
+		return nil
+	case "version", "--version":
+		fmt.Fprintf(stdout, "noteit %s\n", version)
+		return nil
 	}
 
-	if _, err := notebookPath.WriteString(".md"); err != nil {
-		log.Fatalf("error writing directory name, %s\n", n)
-	}
-
-	s.NotebookPath = notebookPath.String()
-}
-
-// getNotebook ensures the notebook (i.e. folder) is available
-// and will create new folder if folder has not been created yet
-func (s *NoteItSession) getNotebook(n string) {
-
-	_, err := os.Stat(s.NotebookPath)
-
-	if os.IsNotExist(err) {
-		f, err := os.Create(s.NotebookPath)
-		defer f.Close()
-		if err != nil {
-			log.Fatalf("Unable to create notebook: %s\n", s.NotebookPath)
-		}
-
-		// set up first note
-		_, err = f.WriteString("# ")
-		if err != nil {
-			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
-		}
-
-		_, err = f.WriteString(n)
-		if err != nil {
-			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
-		}
-
-		_, err = f.WriteString("\n\n")
-		if err != nil {
-			log.Fatalf("error writing to newly created notebook %v, %v\n", s.NotebookPath, err)
-		}
-	}
-}
-
-// addNote adds a note to the selected notebook
-func (s *NoteItSession) addNote(n string) {
-	if s.NotebookPath == "" {
-		fmt.Printf("No notebook specified, will add to default notebook\n")
-		s.setNotebookPath("default")
-		s.getNotebook("default")
-	}
-
-	f, err := os.OpenFile(s.NotebookPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	defer f.Close()
-
-	_, err = f.WriteString("- ")
+	cfg, err := loadConfig()
 	if err != nil {
-		log.Fatalf("error writing to file: %v. Error: %v\n", s.NotebookPath, err)
+		return err
 	}
+	store := Store{Dir: cfg.Path}
 
-	_, err = f.WriteString(n)
-	if err != nil {
-		log.Fatalf("error writing to file: %v. Error: %v\n", s.NotebookPath, err)
+	switch cmd {
+	case "add":
+		return cmdAdd(store, cfg, args, stdout)
+	case "edit":
+		return cmdEdit(store, cfg, args)
+	case "view":
+		return cmdView(store, cfg, args, stdout)
+	case "list", "ls":
+		return cmdList(store, stdout)
+	default:
+		return fmt.Errorf("unknown command %q\n\n%s", cmd, usage)
 	}
-
-	_, err = f.WriteString("\n")
-	if err != nil {
-		log.Fatalf("error writing new line file: %v. Error: %v\n", s.NotebookPath, err)
-	}
-
-	fmt.Printf("%v note updated!\n", s.NotebookPath)
 }
 
-// editNote opens specified note in vim
-func (s *NoteItSession) editNote(n string) {
-	s.setNotebookPath(n)
+func cmdAdd(store Store, cfg Config, args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("add", flag.ContinueOnError)
+	notebook := fs.String("n", cfg.DefaultNotebook, "notebook to add the note to")
+	if err := fs.Parse(args); err == flag.ErrHelp {
+		return nil
+	} else if err != nil {
+		return err
+	}
 
-	cmd := exec.Command("nvim", s.NotebookPath)
+	note := strings.TrimSpace(strings.Join(fs.Args(), " "))
+	if note == "" {
+		return fmt.Errorf("nothing to add\n\nusage: noteit add [-n notebook] <note...>")
+	}
+
+	path, err := store.Add(*notebook, note)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(stdout, "added to %s\n", path)
+	return nil
+}
+
+func cmdEdit(store Store, cfg Config, args []string) error {
+	name, err := notebookArg(cfg, args)
+	if err != nil {
+		return err
+	}
+	path, err := store.Ensure(name)
+	if err != nil {
+		return err
+	}
+
+	editor := cfg.editorCommand()
+	cmd := exec.Command(editor[0], append(editor[1:], path)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
-
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Error running cmd: %v\n", cmd.Args[:])
+		return fmt.Errorf("running editor %q: %w", strings.Join(editor, " "), err)
 	}
+	return nil
 }
 
-func (s *NoteItSession) printNote(n string, nb string) {
-	// show all notes in notebook n
+func cmdView(store Store, cfg Config, args []string, stdout io.Writer) error {
+	name, err := notebookArg(cfg, args)
+	if err != nil {
+		return err
+	}
+	data, err := store.Read(name)
+	if err != nil {
+		return err
+	}
+	_, err = stdout.Write(data)
+	return err
 }
 
-// getSessionDetails sets up the current NoteItSession.
-// This holds details such as user's $HOME, and default note.
-// These can be overridden by the noteit.json file.
-func getSessionDetails() *NoteItSession {
-	// TODO: make this read json file
-	p := new(NoteItSession)
-	p.UserDir = os.Getenv("HOME")
-	var buffer bytes.Buffer
-	buffer.WriteString(p.UserDir)
-	buffer.WriteString("/noteit/")
-	p.UserDir = buffer.String()
-	return p
+func cmdList(store Store, stdout io.Writer) error {
+	names, err := store.List()
+	if err != nil {
+		return err
+	}
+	for _, n := range names {
+		fmt.Fprintln(stdout, n)
+	}
+	return nil
+}
+
+// notebookArg returns the single optional notebook argument, or the
+// configured default notebook when none is given.
+func notebookArg(cfg Config, args []string) (string, error) {
+	switch len(args) {
+	case 0:
+		return cfg.DefaultNotebook, nil
+	case 1:
+		return args[0], nil
+	default:
+		return "", fmt.Errorf("expected at most one notebook, got %d", len(args))
+	}
 }
